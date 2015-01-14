@@ -10,7 +10,7 @@ class GrailsSlackGrailsPlugin {
 
     // TODO Fill in these fields
     def title = "Grails Slack Plugin" // Headline display name of the plugin
-    def author = "Your name"
+    def author = "Joe Schweitzer"
     def authorEmail = ""
     def description = '''\
 Brief summary/description of the plugin.
