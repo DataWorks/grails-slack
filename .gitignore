@@ -1,0 +1,7 @@
+/.settings
+/target
+*.swp
+*.log
+grails*.zip
+grails*.zip.sha1
+plugin.xml
