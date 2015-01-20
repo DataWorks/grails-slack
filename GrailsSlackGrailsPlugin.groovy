@@ -13,7 +13,7 @@ class GrailsSlackGrailsPlugin {
     def author = "Joe Schweitzer"
     def authorEmail = ""
     def description = '''\
-Brief summary/description of the plugin.
+Provide artifacts for interacting with Slack API.
 '''
 
     // URL to the plugin's documentation

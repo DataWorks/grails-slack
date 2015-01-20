@@ -35,8 +35,9 @@ grails.project.dependency.resolution = {
         //mavenRepo "http://repository.jboss.com/maven2/"
     }
     dependencies {
-        // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
-        // runtime 'mysql:mysql-connector-java:5.1.27'
+		compile 'org.apache.httpcomponents:fluent-hc:4.3.6'
+		compile 'org.eclipse.jetty.websocket:websocket-client:9.3.0.M1'
+		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
     }
 
     plugins {
@@ -44,9 +45,7 @@ grails.project.dependency.resolution = {
               ":rest-client-builder:1.0.3") {
             export = false
         }
-			  
-        compile(":tomcat:7.0.54") {
-            export = false
-        }
+		
+		compile ":spring-websocket:1.2.0"
     }
 }
