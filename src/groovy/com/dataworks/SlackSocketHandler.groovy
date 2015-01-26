@@ -18,6 +18,10 @@ class SlackSocketHandler extends AbstractWebSocketHandler {
 	def sendMessage(String message) {
 		session.sendMessage(new TextMessage(message))
 	}
+	
+	def isOpen() {
+		session.isOpen()
+	}
 
 	@Override
 	public void handleTextMessage(WebSocketSession session, TextMessage message) {

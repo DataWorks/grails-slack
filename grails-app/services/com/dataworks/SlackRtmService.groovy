@@ -39,11 +39,16 @@ class SlackRtmService {
 		activeSockets[token]
 	}
 	
+	def startNewSession(String token)  {
+		activeSockets[token] = null
+		startSession(token)
+	}
+	
 	def sendMessage(String token, def messageObj) {
 		def activeSocket = activeSockets[token]
 		
-		if (!activeSocket) {
-			activeSocket = startSession(token)
+		if (!activeSocket || !activeSocket.handler.isOpen()) {
+			activeSocket = startNewSession(token)
 		}
 		
 		switch (messageObj.type) {
