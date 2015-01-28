@@ -4,7 +4,7 @@ import grails.converters.JSON
 
 import org.springframework.messaging.handler.annotation.MessageMapping
 
-class SlackIncomingMessageController {
+class SlackRtmController {
 	
 	def slackOutgoingMessageService
 
