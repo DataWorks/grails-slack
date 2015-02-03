@@ -9,6 +9,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient
 class SlackRtmService {
 	
 	def slackService
+	def slackTokenService
 	def slackIncomingMessageService
 	
 	def activeSockets = [:]
@@ -17,17 +18,23 @@ class SlackRtmService {
 		slackService.apiCall('rtm.start', token)
     }
 	
-	def startSession(String token) {
-		if (activeSockets[token]) return
+	def startSession(String userName) {
+		if (activeSockets[userName]) return
+		
+		def token = slackTokenService.getUserToken(userName)
 		
 		def resp = rtmStart(token)
 		resp.type = 'connect'
 		
+		if (!resp.ok) {
+			throw new IllegalStateException("Could not connect to Slack: ${resp.error}")
+		}
+		
 		def client = new StandardWebSocketClient()
-		def handler = new SlackSocketHandler(token, slackIncomingMessageService)
+		def handler = new SlackSocketHandler(userName, slackIncomingMessageService)
 		def manager = new WebSocketConnectionManager(client, handler, resp.url)
 		
-		activeSockets[token] = [
+		activeSockets[userName] = [
 			client: client,
 			handler: handler,
 			manager: manager,
@@ -36,24 +43,24 @@ class SlackRtmService {
 		
 		manager.start()
 		
-		activeSockets[token]
+		activeSockets[userName]
 	}
 	
-	def startNewSession(String token)  {
-		activeSockets[token] = null
-		startSession(token)
+	def startNewSession(String userName)  {
+		activeSockets[userName] = null
+		startSession(userName)
 	}
 	
-	def sendMessage(String token, def messageObj) {
-		def activeSocket = activeSockets[token]
+	def sendMessage(String userName, def messageObj) {
+		def activeSocket = activeSockets[userName]
 		
 		if (!activeSocket || !activeSocket.handler.isOpen()) {
-			activeSocket = startNewSession(token)
+			activeSocket = startNewSession(userName)
 		}
 		
 		switch (messageObj.type) {
 			case 'initialInfo':
-				sendInitialInfo(token)
+				sendInitialInfo(userName)
 				break
 			case 'message':
 				activeSocket.handler.sendMessage((messageObj as JSON).toString())
@@ -61,11 +68,11 @@ class SlackRtmService {
 		}
 	}
 	
-	def sendInitialInfo(String token) {
-		def initialInfo = activeSockets[token]?.rtmInfo
+	def sendInitialInfo(String userName) {
+		def initialInfo = activeSockets[userName]?.rtmInfo
 		
 		if (initialInfo) {
-			slackIncomingMessageService.processMessage(token, initialInfo)
+			slackIncomingMessageService.processMessage(userName, initialInfo)
 		}
 	}
 }

@@ -6,11 +6,11 @@ import grails.transaction.Transactional
 class SlackIncomingMessageService {
 	def brokerMessagingTemplate
 	
-	def processMessage(userToken, message) {
-		brokerMessagingTemplate.convertAndSend("/topic/slack", message)
+	def processMessage(userName, message) {
+		brokerMessagingTemplate.convertAndSendToUser(userName, "/topic/slack", message)
 	}
 	
-	def processConnectionEstablished(userToken) {
-		brokerMessagingTemplate.convertAndSend("/topic/slack", [text: 'Connection established to Slack'])
+	def processConnectionEstablished(userName) {
+		brokerMessagingTemplate.convertAndSendToUser(userName, "/topic/slack", [text: 'Connection established to Slack'])
 	}
 }

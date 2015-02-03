@@ -8,11 +8,11 @@ import org.springframework.web.socket.handler.AbstractWebSocketHandler
 class SlackSocketHandler extends AbstractWebSocketHandler {
 	private def session
 	private def slackIncomingMessageHandler
-	private String userToken
+	private String userName
 	
-	public SlackSocketHandler(String userTokenIn, def slackIncomingMessageHandlerIn) {
+	public SlackSocketHandler(String userNameIn, def slackIncomingMessageHandlerIn) {
 		slackIncomingMessageHandler = slackIncomingMessageHandlerIn
-		userToken = userTokenIn
+		userName = userNameIn
 	}
 	
 	def sendMessage(String message) {
@@ -25,12 +25,12 @@ class SlackSocketHandler extends AbstractWebSocketHandler {
 
 	@Override
 	public void handleTextMessage(WebSocketSession session, TextMessage message) {
-		slackIncomingMessageHandler.processMessage(userToken, JSONUtils.getMap(message.payload))
+		slackIncomingMessageHandler.processMessage(userName, JSONUtils.getMap(message.payload))
 	}
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession sessionIn) {
 		session = sessionIn
-		slackIncomingMessageHandler.processConnectionEstablished(userToken)
+		slackIncomingMessageHandler.processConnectionEstablished(userName)
 	}
 }

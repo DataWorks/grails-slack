@@ -6,9 +6,8 @@ import grails.transaction.Transactional
 class SlackOutgoingMessageService {
 
 	def slackRtmService
-	def slackTokenService
 	
-    def sendMessage(message) {
-		slackRtmService.sendMessage(slackTokenService.getCurrentUserToken(), message)
+    def sendMessage(userName, message) {
+		slackRtmService.sendMessage(userName, message)
     }
 }
