@@ -5,18 +5,28 @@ package com.dataworks
 class SlackChannelService {
 
 	def slackService
+	def slackTokenService
 	
-    def listChannels(String token) {
-		slackService.apiCall('channels.list', token)
+	static def HISTORY_METHOD_NAME_MAP = [
+		channel: 'channels',
+		im: 'im',
+		group: 'groups'
+	]
+	
+    def listChannels() {
+		slackService.apiCall('channels.list', slackTokenService.getCurrentUserToken())
     }
 	
-	def listFullChannelHistory(String token, String channel) {
+	def listFullChannelHistory(String channelType, String channel) {
 		def messages = []
 		def hasMore = true
 		def latest = null
 		
+		def methodName = HISTORY_METHOD_NAME_MAP[channelType] ?: 'channels'
+		
 		while (hasMore) {
-			def resp = slackService.apiCall('channels.list', token, [channel: channel, count: 1000, latest: latest])
+			def resp = slackService.apiCall("${methodName}.history", slackTokenService.getCurrentUserToken(), 
+				[channel: channel, count: 1000, latest: latest])
 			
 			if (resp.ok) {
 				messages.addAll(resp.messages)
@@ -27,6 +37,6 @@ class SlackChannelService {
 			}
 		}
 		
-		messages
+		messages.reverse()
 	}
 }
