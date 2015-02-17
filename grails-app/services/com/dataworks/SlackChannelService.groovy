@@ -31,7 +31,10 @@ class SlackChannelService {
 			if (resp.ok) {
 				messages.addAll(resp.messages)
 				hasMore = resp.has_more
-				latest = resp.messages.last().ts
+				
+				if (resp.messages) {
+					latest = resp.messages.last().ts
+				}
 			} else {
 				throw new Exception("Failed to retrieve channel history: ${resp.error}")
 			}
