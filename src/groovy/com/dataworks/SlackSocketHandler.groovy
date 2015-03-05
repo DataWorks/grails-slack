@@ -20,7 +20,7 @@ class SlackSocketHandler extends AbstractWebSocketHandler {
 	}
 	
 	def isOpen() {
-		session.isOpen()
+		session?.isOpen() ?: false
 	}
 
 	@Override
