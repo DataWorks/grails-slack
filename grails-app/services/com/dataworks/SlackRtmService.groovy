@@ -24,7 +24,6 @@ class SlackRtmService {
 		def token = slackTokenService.getUserToken(userName)
 		
 		def resp = rtmStart(token)
-		resp.type = 'connect'
 		
 		if (!resp.ok) {
 			throw new IllegalStateException("Could not connect to Slack: ${resp.error}")
@@ -37,8 +36,7 @@ class SlackRtmService {
 		activeSockets[userName] = [
 			client: client,
 			handler: handler,
-			manager: manager,
-			rtmInfo: resp
+			manager: manager
 		]
 		
 		manager.start()
@@ -54,7 +52,7 @@ class SlackRtmService {
 	def sendMessage(String userName, def messageObj) {
 		def activeSocket = activeSockets[userName]
 		
-		if (!activeSocket || !activeSocket.handler.isOpen() || messageObj.type == 'initialInfo') {
+		if (!activeSocket || !activeSocket.handler.isOpen()) {
 			activeSocket = startNewSession(userName)
 		}
 		
@@ -69,10 +67,10 @@ class SlackRtmService {
 	}
 	
 	def sendInitialInfo(String userName) {
-		def initialInfo = activeSockets[userName]?.rtmInfo
+		def initialInfo = rtmStart(slackTokenService.getUserToken(userName))
 		
 		if (initialInfo) {
-			slackIncomingMessageService.processMessage(userName, initialInfo)
+			slackIncomingMessageService.processMessage(userName, initialInfo + [type: 'connect'])
 		}
 	}
 }
