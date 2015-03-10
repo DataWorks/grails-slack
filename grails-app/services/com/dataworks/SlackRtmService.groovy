@@ -61,6 +61,7 @@ class SlackRtmService {
 				sendInitialInfo(userName)
 				break
 			case 'message':
+			case 'ping':
 				activeSocket.handler.sendMessage((messageObj as JSON).toString())
 				break
 		}
