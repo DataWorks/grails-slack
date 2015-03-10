@@ -13,6 +13,10 @@ class SlackChannelService {
 		group: 'groups'
 	]
 	
+	private def getMethodName(channelType) {
+		HISTORY_METHOD_NAME_MAP[channelType] ?: 'channels'
+	}
+	
     def listChannels() {
 		slackService.apiCall('channels.list', slackTokenService.getCurrentUserToken())
     }
@@ -22,10 +26,8 @@ class SlackChannelService {
 		def hasMore = true
 		def latest = null
 		
-		def methodName = HISTORY_METHOD_NAME_MAP[channelType] ?: 'channels'
-		
 		while (hasMore) {
-			def resp = slackService.apiCall("${methodName}.history", slackTokenService.getCurrentUserToken(), 
+			def resp = slackService.apiCall("${getMethodName(channelType)}.history", slackTokenService.getCurrentUserToken(), 
 				[channel: channel, count: 1000, latest: latest])
 			
 			if (resp.ok) {
@@ -41,5 +43,10 @@ class SlackChannelService {
 		}
 		
 		messages.reverse()
+	}
+	
+	def markChannel(String channelType, String channel, String timestamp) {
+		slackService.apiCall("${getMethodName(channelType)}.mark", slackTokenService.getCurrentUserToken(), 
+			[channel: channel, ts: timestamp])
 	}
 }
