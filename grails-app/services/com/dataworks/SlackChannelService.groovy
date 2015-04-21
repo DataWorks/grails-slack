@@ -21,14 +21,13 @@ class SlackChannelService {
 		slackService.apiCall('channels.list', slackTokenService.getCurrentUserToken())
     }
 	
-	def listFullChannelHistory(String channelType, String channel) {
+	def listChannelHistory(String channelType, String channel, String latest, int limit) {
 		def messages = []
 		def hasMore = true
-		def latest = null
 		
-		while (hasMore) {
+		while (hasMore && messages.size() < limit) {
 			def resp = slackService.apiCall("${getMethodName(channelType)}.history", slackTokenService.getCurrentUserToken(), 
-				[channel: channel, count: 1000, latest: latest])
+				[channel: channel, count: limit, latest: latest])
 			
 			if (resp.ok) {
 				messages.addAll(resp.messages)
@@ -42,7 +41,7 @@ class SlackChannelService {
 			}
 		}
 		
-		messages.reverse()
+		[messages: messages.reverse(), hasMore: hasMore]
 	}
 	
 	def markChannel(String channelType, String channel, String timestamp) {

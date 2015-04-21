@@ -7,8 +7,9 @@ class SlackChannelController {
 	def slackChannelService
 	
 	def listChannelHistory() {
-		def messages = slackChannelService.listFullChannelHistory(params.channelType, params.channel)
-		render ([success: true, rows: messages, total: messages.size()] as JSON)
+		def limit = params.limit ?: 50
+		def result = slackChannelService.listChannelHistory(params.channelType, params.channel, params.latest, limit as int)
+		render ([success: true, rows: result.messages, total: result.messages.size(), hasMore: result.hasMore] as JSON)
 	}
 	
 	def markChannel() {
