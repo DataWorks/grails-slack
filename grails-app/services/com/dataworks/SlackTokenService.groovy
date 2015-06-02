@@ -7,6 +7,7 @@ import java.nio.file.Files
 class SlackTokenService {
 
 	static String TOKEN_FOLDER = "tokens"
+	static String TOKEN_TEAM_DELIM = "::"
 	
 	def springSecurityService
 	
@@ -34,15 +35,44 @@ class SlackTokenService {
 		path.toFile()
 	}
 	
-    def updateUserToken(String token) {
-		getFile().text = token
+    def updateUserToken(String token, String tokenTeam = null) {
+		def allTokenInfo = getAllUserTokens(null)
+		def tokenInfo = allTokenInfo.find { it.tokenTeam == tokenTeam }
+		
+		if (tokenInfo) {
+			tokenInfo.token = token
+		} else {
+			allTokenInfo << [token: token, tokenTeam: tokenTeam]
+		}
+		
+		def newFileData = allTokenInfo.collect {
+			it.token + (it.tokenTeam ? "${TOKEN_TEAM_DELIM}${it.tokenTeam}" : '')
+		}.join(System.lineSeparator())
+		
+		getFile().text = newFileData
     }
 	
-	def getUserToken(userName) {
-		getFile(userName).text
+	def getAllUserTokens(userName) {
+		def lines = getFile(userName).readLines()
+		def tokenInfo = lines.collect { line ->
+			def parts = line.split(TOKEN_TEAM_DELIM)
+			def tokenTeam = parts.size() > 1 ? parts[1] : null
+			[token: parts[0], tokenTeam: tokenTeam]
+		}
+		tokenInfo
+	}
+	
+	def getUserToken(userName, tokenTeam = null) {
+		getAllUserTokens(userName).find {
+			it.tokenTeam == tokenTeam
+		}?.token
+	}
+	
+	def getCurrentUserTeams() {
+		getAllUserTokens().collect { it.tokenTeam }
 	}
 	
 	def getCurrentUserToken() {
-		getFile().text
+		getUserToken(null)
 	}
 }
