@@ -15,7 +15,7 @@ class SlackRtmService {
 	def activeSockets = [:]
 
     def rtmStart(String token) {
-		slackService.apiCall('rtm.start', token)
+		slackService.apiCall('rtm.start', token, ['mpim_aware': true])
     }
 	
 	def startSession(String userName) {
