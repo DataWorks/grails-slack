@@ -15,7 +15,7 @@ class SlackRtmService {
 	def activeSockets = [:]
 
     def rtmStart(String token) {
-		slackService.apiCall('rtm.start', token, ['mpim_aware': true])
+		slackService.apiCall('rtm.connect', token, ['mpim_aware': true])
     }
 	
 	def startSession(String userName) {
@@ -36,7 +36,8 @@ class SlackRtmService {
 		activeSockets[userName] = [
 			client: client,
 			handler: handler,
-			manager: manager
+			manager: manager,
+			self: resp.self
 		]
 		
 		manager.start()
@@ -58,7 +59,7 @@ class SlackRtmService {
 		
 		switch (messageObj.type) {
 			case 'initialInfo':
-				sendInitialInfo(userName)
+				sendInitialInfo(activeSocket, userName)
 				break
 			case 'message':
 			case 'ping':
@@ -67,11 +68,77 @@ class SlackRtmService {
 		}
 	}
 	
-	def sendInitialInfo(String userName) {
-		def initialInfo = rtmStart(slackTokenService.getUserToken(userName))
+	def sendInitialInfo(def activeSocket, String userName) {
+		def initialInfo = getInitialInfo(slackTokenService.getUserToken(userName))
 		
-		if (initialInfo) {
-			slackIncomingMessageService.processMessage(userName, initialInfo + [type: 'connect'])
+		slackIncomingMessageService.processMessage(userName, initialInfo + [type: 'connect', self: activeSocket.self])
+	}
+	
+	def getInitialInfo(String token) {
+		[
+			users: getUserInfo(token),
+			channels: getChannelInfo(token), 
+			groups: getGroupInfo(token),
+			ims: getImInfo(token),
+			bots: []
+		]
+	}
+	
+	def getUserInfo(String token) {
+		def fullUserInfo = []
+		def allUsersResp = slackService.apiCall('users.list', token, ['presence': true])
+		
+		if (!allUsersResp.ok) {
+			throw new IllegalStateException("Could not retrieve users from Slack: ${allUsersResp.error}")
 		}
+		
+		allUsersResp.members
+	}
+	
+	def getChannelInfo(String token) {
+		def fullChannelInfo = []
+		def allChannelsResp = slackService.apiCall('channels.list', token, ['exclude_archived': true])
+		
+		if (!allChannelsResp.ok) {
+			throw new IllegalStateException("Could not retrieve channels from Slack: ${allChannelsResp.error}")
+		}
+		
+		allChannelsResp.channels.each { channel ->
+			if (channel.is_member) {
+				fullChannelInfo << slackService.apiCall('channels.info', token, ['channel': channel.id]).channel
+			}
+		}
+		
+		fullChannelInfo
+	}
+	
+	def getGroupInfo(String token) {
+		def fullGroupInfo = []
+		def allGroupsResp = slackService.apiCall('groups.list', token, ['exclude_archived': true])
+		
+		if (!allGroupsResp.ok) {
+			throw new IllegalStateException("Could not retrieve groups from Slack: ${allGroupsResp.error}")
+		}
+		
+		allGroupsResp.groups.each { group ->
+			fullGroupInfo << slackService.apiCall('groups.info', token, ['channel': group.id]).group
+		}
+		
+		fullGroupInfo
+	}
+	
+	def getImInfo(String token) {
+		def fullImInfo = []
+		def allImResp = slackService.apiCall('im.list', token)
+		
+		if (!allImResp.ok) {
+			throw new IllegalStateException("Could not retrieve ims from Slack: ${allImResp.error}")
+		}
+		
+		allImResp.ims.each { im ->
+			fullImInfo << slackService.apiCall('im.info', token, ['channel': im.id]).im
+		}
+		
+		fullImInfo
 	}
 }
